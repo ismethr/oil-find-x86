@@ -1,0 +1,69 @@
+  /* Each height leaves room for whole 50px rows, including the list's 6px inset. */
+  .panel { width: var(--col); max-width: calc(100vw - 32px); height: 448px; margin: 0 auto; border-radius: 22px; background: rgba(255, 255, 255, .9); border: 1px solid rgba(29, 29, 31, .1);
+    box-shadow: 0 1px 2px rgba(20, 35, 60, .08), 0 24px 60px rgba(20, 35, 60, .14); -webkit-backdrop-filter: blur(30px) saturate(1.4); backdrop-filter: blur(30px) saturate(1.4);
+    display: flex; flex-direction: column; overflow: hidden; }
+  .panel.rise { animation: rise .42s var(--spring-panel) var(--rise-delay, .3s) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.965); } }
+  .search { height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 22px 0 24px; flex: none; }
+  .search:focus-within { box-shadow: inset 0 -2px 0 var(--tint); }
+  .search svg { width: 20px; height: 20px; color: var(--ink2); flex: none; }
+  .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: 400 21px/1 var(--display); caret-color: var(--blue); }
+  .search input::placeholder { color: var(--ink3); }
+  .line { height: 1px; background: var(--hair); flex: none; }
+  .chips { height: 40px; display: flex; align-items: center; padding: 0 18px; gap: 2px; position: relative; flex: none; overflow: hidden; }
+  .pill { position: absolute; top: 7px; height: 26px; border-radius: 13px; background: rgba(47, 124, 246, .15); transition: left .24s var(--spring-chip), width .24s var(--spring-chip); }
+  .chip { position: relative; flex: none; height: 26px; padding: 0 11px; border: 0; background: none; font: 500 12.5px/26px var(--ui); color: var(--ink2); border-radius: 13px; white-space: nowrap; cursor: pointer; transition: color .15s; }
+  .chip:hover { color: var(--ink); }
+  .chip.on { color: var(--blue-deep); }
+  .sort { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+  .list { flex: 1; position: relative; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--key) transparent; overscroll-behavior: contain; }
+  .rows { position: relative; margin-top: 6px; }
+  .plate { position: absolute; left: 10px; right: 10px; top: 1px; height: 48px; border-radius: 10px; pointer-events: none; }
+  .sel { background: var(--sel); transition: transform .16s var(--spring-sel); }
+  .sel.pointerSelection { transition: none; }
+  .hov { background: rgba(29, 29, 31, .05); opacity: 0; transition: transform .14s ease-out, opacity .14s; }
+  /* Rows keep their identity across keystrokes: survivors glide to their new slot, newcomers fade in. */
+  .row { position: absolute; left: 0; right: 0; top: 0; height: 50px; cursor: default; transition: transform .26s var(--spring-sel); animation: fade .24s ease-out both; }
+  @keyframes fade { from { opacity: 0; } }
+  .row .ico { position: absolute; left: 26px; top: 9px; width: 32px; height: 32px; }
+  .row .name { position: absolute; left: 70px; top: 7px; right: 150px; font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .path { position: absolute; left: 70px; top: 27px; right: 150px; font-size: 11.5px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .meta { position: absolute; right: 26px; top: 8px; font-size: 11.5px; color: var(--ink2); text-align: right; }
+  .row .meta2 { position: absolute; right: 26px; top: 27px; font-size: 11.5px; color: var(--ink3); text-align: right; }
+  .row mark { background: none; color: var(--blue); font-weight: 600; }
+  .row code { font: 12px var(--mono); color: var(--ink2); }
+  .none { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; padding: 0 24px; color: var(--ink3); font-size: 12px; animation: fade .18s ease-out both; }
+  .none svg { width: 34px; height: 34px; margin-bottom: 8px; }
+  .none b { font-size: 14px; font-weight: 500; color: var(--ink2); }
+  .foot { height: 34px; display: flex; align-items: center; padding: 0 18px 0 22px; font-size: 11.5px; color: var(--ink3); flex: none; gap: 14px; white-space: nowrap; overflow: hidden; }
+  .foot .sp { flex: 1; }
+  .foot .status { transition: opacity .16s; overflow: hidden; text-overflow: ellipsis; }
+  .foot .status.toast { color: var(--ink); }
+
+@media (min-width: 641px) and (max-height: 820px) {
+  .panel { height: 398px; }
+}
+@media (min-width: 641px) and (max-height: 760px) {
+  .panel { height: 348px; }
+}
+@media (min-width: 641px) and (max-height: 700px) {
+  .panel { height: 298px; }
+}
+@media (max-width: 640px) {
+  .panel { height: 348px; border-radius: 18px; }
+  .chips { padding-inline: 10px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { padding-inline: 8px; }
+  .search input { font-size: 18px; }
+  .row .name, .row .path { right: 20px; }
+  .row .meta, .row .meta2, .hints, .sort { display: none; }
+}
+@media (max-width: 360px) {
+  .chips { padding-inline: 8px; gap: 0; }
+  .chip { padding-inline: 3px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel.rise, .row, .none { animation: none; }
+  .sel, .pill, .hov, .row { transition: none; }
+}

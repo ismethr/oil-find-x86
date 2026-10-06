@@ -1,0 +1,6 @@
+test/
+.env*
+README.md
+.next/
+node_modules/
+.acceptance/

@@ -1,0 +1,14 @@
+  .syn button { display: grid; grid-template-columns: 210px 1fr auto; gap: 16px; align-items: center; width: 100%; padding: 17px 22px; border: 0; border-top: 1px solid var(--hair); background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; transition: background .15s; }
+  .syn button:focus-visible { outline-offset: -3px; }
+  .syn button:first-child { border-top: 0; }
+  .syn button:hover { background: rgba(47, 124, 246, .06); }
+  .syn button:active { background: rgba(47, 124, 246, .11); }
+  .syn code { font: 13.5px var(--mono); color: var(--blue-deep); }
+  .syn span { color: var(--ink2); font-size: 13.5px; }
+  .syn i { font-style: normal; font-size: 12px; color: var(--ink2); }
+
+
+@media (max-width: 640px) {
+  .syn button { grid-template-columns: 1fr; gap: 6px; padding: 16px; }
+  .syn i { display: none; }
+}
