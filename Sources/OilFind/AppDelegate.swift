@@ -11,6 +11,7 @@ enum AppLog {
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let panel = SearchPanel()
     private var statusItem: NSStatusItem?
+    private var statusMenu: NSMenu?
     private var localizedMenuItems: [(String, NSMenuItem)] = []
     private var languageObserver: NSObjectProtocol?
     private var hotKey: HotKey?
@@ -115,6 +116,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         let image = Theme.symbol("magnifyingglass", size: 16, weight: .regular); image.isTemplate = true
         statusItem?.button?.image = image
+        // Left click opens search directly; right click (or Control-click) shows the menu.
+        statusItem?.button?.target = self
+        statusItem?.button?.action = #selector(statusItemClicked(_:))
+        statusItem?.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         let menu = NSMenu(); menu.autoenablesItems = false; menu.delegate = self
         func item(_ key: String, _ action: Selector?, _ equivalent: String = "") -> NSMenuItem {
             let value = NSMenuItem(title: L10n.text(key), action: action, keyEquivalent: equivalent)
@@ -136,11 +141,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updateItem = item("update.check", #selector(presentUpdate))
         refreshUpdateMenu()
         menu.addItem(.separator()); quitItem = item("menu.quit", #selector(quit), "q")
-        statusItem?.menu = menu
+        statusMenu = menu
     }
     private func localizeMenu() {
         for (key, item) in localizedMenuItems { item.title = L10n.text(key) }
-        if let menu = statusItem?.menu { menuWillOpen(menu) }
+        if let menu = statusMenu { menuWillOpen(menu) }
         refreshUpdateMenu()
     }
     private func registerHotKey(keyCode: UInt32, modifiers: UInt32) -> Bool {
@@ -189,6 +194,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
     @objc private func checkUpdates() { UpdateManager.shared.check() }
     @objc private func presentUpdate() { UpdateManager.shared.present() }
+    @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
+            // Attach the menu only for this click so left clicks keep reaching the action.
+            statusItem?.menu = statusMenu
+            sender.performClick(nil)
+            statusItem?.menu = nil
+        } else { showSearch() }
+    }
     @objc private func showSearch() {
         if welcomeState?.isShowing == true { welcomeController?.present() }
         else { panel.show(source: .menu) }
