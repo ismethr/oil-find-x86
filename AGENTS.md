@@ -15,7 +15,7 @@
 
 ## 构建与测试
 
-部署目标 macOS 14，面向 Apple 芯片。
+部署目标 macOS 14。本仓库是 [oil-oil/oil-find](https://github.com/oil-oil/oil-find) 的非官方 x86（Intel Mac）分支：`scripts/build-app.sh` 固定产出 x86_64，应用不安装上游更新。
 
 ```sh
 swift build -c release

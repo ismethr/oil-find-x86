@@ -9,8 +9,9 @@ case "${1:-}" in
     --debug) [[ $# -eq 1 ]] || exit 2; CONFIGURATION=debug; APP_PATH="$PROJECT_DIR/build/debug/Oil Find.app" ;;
     *) printf '%s\n' 'Usage: scripts/build-app.sh [--debug]' >&2; exit 2 ;;
 esac
-swift build -c "$CONFIGURATION"
-BINARY_DIR="$(swift build -c "$CONFIGURATION" --show-bin-path)"
+# x86 fork: always produce an Intel binary, whatever the host architecture.
+swift build -c "$CONFIGURATION" --arch x86_64
+BINARY_DIR="$(swift build -c "$CONFIGURATION" --arch x86_64 --show-bin-path)"
 mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
 cp "$BINARY_DIR/OilFind" "$APP_PATH/Contents/MacOS/OilFind"
 if [[ "$CONFIGURATION" == release ]]; then

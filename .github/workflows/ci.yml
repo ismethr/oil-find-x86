@@ -21,6 +21,8 @@ jobs:
         run: swift build
       - name: Test Swift app
         run: swift test
+      - name: Build x86_64 app
+        run: swift build -c release --arch x86_64
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:

@@ -2,8 +2,20 @@
   <img src="./assets/readme/hero.svg" width="100%" alt="Oil Find：苹果版的 Everything。按 ⇧⌘F，输入即出结果。">
 </p>
 
+> [!NOTE]
+> **这是 [Oil Find](https://github.com/oil-oil/oil-find) 的非官方 Intel（x86_64）版本。**
+> Oil Find 由 [Lin Zhihuang（oil-oil）](https://github.com/oil-oil) 开发，以 MIT 许可证开源；本仓库在原作者代码的基础上修改，与原作者无关，问题请在本仓库反馈，不要打扰上游。
+>
+> 与上游的区别：
+> - 编译为 x86_64，可以在 Intel Mac 上运行（Apple 芯片请用[官方版本](https://github.com/oil-oil/oil-find/releases/latest)）。
+> - OneDrive、iCloud 云盘等「仅在云端」的文件夹也会列出里面的文件名；应用全程禁止下载云端文件，只取文件名，不取内容。
+> - 点击菜单栏图标直接打开搜索，右键点击打开菜单。
+> - 不安装上游的自动更新（上游安装包只支持 Apple 芯片）；「检查更新」会打开本仓库的 Releases 页面。
+
 <p align="center">
-  <a href="https://github.com/oil-oil/oil-find/releases/latest"><b>下载</b></a>
+  <a href="https://github.com/ismethr/oil-find-x86/releases/latest"><b>下载 x86 版</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/oil-oil/oil-find"><b>上游仓库</b></a>
   &nbsp;·&nbsp;
   <a href="https://find.oiloil.org">官网</a>
   &nbsp;·&nbsp;
@@ -98,11 +110,11 @@ scripts/install.sh     # 构建并安装到「应用程序」
 
 - 只读取文件名、大小和修改时间，不读文件内容。
 - 索引只保存在本机的 `~/Library/Application Support/Oil Find/`。
-- 唯一的联网是每天检查一次新版本：只请求一个版本信息文件，不带任何设备或使用数据，可以在设置里关闭。
+- 本 x86 版不会自动联网检查更新。
 
 ## 目前的限制
 
-- 只支持 Apple 芯片和 macOS 14 及以上。
+- 本仓库只提供 Intel（x86_64）版本，需要 macOS 14 及以上。
 - 外置磁盘和网络卷暂时搜不到。
 - 只搜文件名，不搜文件内容。
 
@@ -120,4 +132,4 @@ scripts/install.sh     # 构建并安装到「应用程序」
 
 ## 许可证
 
-[MIT](./LICENSE)
+[MIT](./LICENSE)。原作版权归 Lin Zhihuang 所有，x86 分支的修改部分版权归 ismethr 所有。

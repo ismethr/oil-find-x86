@@ -42,7 +42,11 @@ final class UpdateManager: ObservableObject {
         runningVersion = current
         automatic = snapshot ? true : preferences.automatic
     }
+    // x86 fork: upstream updates are Apple silicon builds that would replace this one,
+    // so the app never installs them and "Check for Updates" opens this fork's releases instead.
+    static let forkReleasesURL = URL(string: "https://github.com/ismethr/oil-find-x86/releases")!
     func start() {
+        guard snapshot else { return }
         #if !DEBUG
         started = true; schedule(delay: 30)
         #endif
@@ -56,6 +60,7 @@ final class UpdateManager: ObservableObject {
         }
     }
     func check(manual: Bool = true) {
+        guard snapshot else { if manual { NSWorkspace.shared.open(Self.forkReleasesURL) }; return }
         #if !DEBUG
         guard !snapshot, !state.busy else { return }
         setState(.checking)

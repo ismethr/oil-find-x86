@@ -2,8 +2,20 @@
   <img src="./assets/readme/hero.en.svg" width="100%" alt="Oil Find: Everything, for the Mac. Press ⇧⌘F and results appear as you type.">
 </p>
 
+> [!NOTE]
+> **This is an unofficial Intel (x86_64) build of [Oil Find](https://github.com/oil-oil/oil-find).**
+> Oil Find is created by [Lin Zhihuang (oil-oil)](https://github.com/oil-oil) and released under the MIT License. This repository modifies the original code and is not affiliated with the original author; please report issues here, not upstream.
+>
+> Differences from upstream:
+> - Built for x86_64 so it runs on Intel Macs (on Apple silicon, use the [official release](https://github.com/oil-oil/oil-find/releases/latest)).
+> - Cloud-only folders (OneDrive, iCloud Drive, …) have their file names listed too. The app never downloads cloud files; it reads names only, never contents.
+> - Clicking the menu bar icon opens search directly; right-click opens the menu.
+> - Upstream auto-updates are not installed (upstream builds are Apple silicon only); "Check for Updates" opens this repository's Releases page.
+
 <p align="center">
-  <a href="https://github.com/oil-oil/oil-find/releases/latest"><b>Download</b></a>
+  <a href="https://github.com/ismethr/oil-find-x86/releases/latest"><b>Download x86 build</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/oil-oil/oil-find"><b>Upstream</b></a>
   &nbsp;·&nbsp;
   <a href="https://find.oiloil.org/en">Website</a>
   &nbsp;·&nbsp;
@@ -98,11 +110,11 @@ Your own builds are ad-hoc signed, so you need to grant Full Disk Access again a
 
 - Oil Find reads file names, sizes and modification dates only, never file contents.
 - The index stays on your Mac in `~/Library/Application Support/Oil Find/`.
-- The only network request is a daily update check. It fetches one version file and sends no device or usage data. You can turn it off in Settings.
+- This x86 build makes no automatic update requests.
 
 ## Current limits
 
-- Apple silicon and macOS 14 or later only.
+- This repository ships Intel (x86_64) builds only and requires macOS 14 or later.
 - External drives and network volumes aren't indexed yet.
 - File names only; file contents aren't searched.
 
@@ -120,4 +132,4 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the index design and [AGE
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE). The original work is copyright Lin Zhihuang; the x86 fork's modifications are copyright ismethr.
