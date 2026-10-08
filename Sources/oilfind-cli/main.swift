@@ -3,6 +3,7 @@ import Darwin
 import OilFindCore
 import COilFind
 
+CloudPolicy.forbidDownloads()
 let args = Array(CommandLine.arguments.dropFirst())
 let dbDefault = NSHomeDirectory() + "/Library/Caches/Oil Find/cli-index.oilfind"
 func option(_ key: String, fallback: String = "") -> String {

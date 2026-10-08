@@ -119,7 +119,7 @@ public final class Scanner {
         home = config.rootPath == NSHomeDirectory() ? 0 : UInt32.max
         condition.unlock()
         let bufferSlots = ScanBufferSlots(count: threads)
-        DispatchQueue.concurrentPerform(iterations: threads) { worker in
+        DispatchQueue.concurrentPerform(iterations: threads) { worker in CloudPolicy.listingCloudDirectories {
             var local = ScanBuffer()
             let scratchSize = 256 * 1024
             let scratch = UnsafeMutableRawPointer.allocate(byteCount: scratchSize, alignment: 8)
@@ -152,7 +152,11 @@ public final class Scanner {
                             let n = sift_read_dir(fd, scratch, scratchSize, entries, Int32(scratchSize / 32))
                             condition.lock(); let stop = cancelled; condition.unlock()
                             if stop { break }
-                            if n <= 0 { if n < 0 && (errno == EPERM || errno == EACCES) { task.path.dropLast().withContiguousStorageIfAvailable { record(.noAccess, $0) } }; break }
+                            if n <= 0 {
+                                if n < 0 && (errno == EPERM || errno == EACCES) { task.path.dropLast().withContiguousStorageIfAvailable { record(.noAccess, $0) } }
+                                else if n < 0 && opened.st_flags & UInt32(SF_DATALESS) != 0 { task.path.dropLast().withContiguousStorageIfAvailable { record(.cloud, $0) } }
+                                break
+                            }
                             var batch: [Candidate] = []
                             batch.reserveCapacity(Int(n))
                             for i in 0..<Int(n) {
@@ -213,8 +217,8 @@ public final class Scanner {
                                 item.withName { local.append(id: id, parent: item.parent, size: size, mtime: UInt32(clamping: item.mtime), flags: f, depth: item.depth, kind: k, name: $0) }
                                 if let path = item.path {
                                     if path.dropLast().elementsEqual(homeBytes) { condition.lock(); home = id; condition.unlock() }
-                                    if item.bsdFlags & UInt32(SF_DATALESS) != 0 { path.dropLast().withContiguousStorageIfAvailable { record(.cloud, $0) } }
-                                    else if !config.indexPackageContents && f & SiftFlag.package != 0 { path.dropLast().withContiguousStorageIfAvailable { record(.packages, $0) } }
+                                    // Cloud-only folders are listed too; their files stay dataless (see CloudPolicy).
+                                    if !config.indexPackageContents && f & SiftFlag.package != 0 { path.dropLast().withContiguousStorageIfAvailable { record(.packages, $0) } }
                                     else { children.append(DirTask(path: path, name: item.withName(Array.init), parentName: task.name, grandparentName: task.parentName, fileid: item.fileid, dev: item.dev, id: id, depth: item.depth, inherited: f)) }
                                 }
                             }
@@ -225,7 +229,7 @@ public final class Scanner {
                 }
                 condition.lock(); tasks.append(contentsOf: children); active -= 1; condition.broadcast(); condition.unlock()
             }
-        }
+        } }
         condition.lock(); let wasCancelled = cancelled, count = Int(nextId), homeIndex = home; condition.unlock()
         if wasCancelled { return nil }
         let buffers = bufferSlots.snapshot()

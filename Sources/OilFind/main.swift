@@ -1,6 +1,7 @@
 import AppKit
 import OilFindCore
 
+CloudPolicy.forbidDownloads()
 let arguments = Array(CommandLine.arguments.dropFirst())
 #if DEBUG
 if arguments.contains("--snapshot") {

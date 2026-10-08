@@ -321,6 +321,9 @@ public final class IndexUpdater {
         return summary
     }
     private func readSubtree(_ root: String) -> Subtree? {
+        CloudPolicy.listingCloudDirectories { readSubtreeListing(root) }
+    }
+    private func readSubtreeListing(_ root: String) -> Subtree? {
         var path = Array(root.utf8)
         // Capture the root identity before opening, just as queued children use bulk file IDs.
         var expected = stat()
@@ -343,7 +346,6 @@ public final class IndexUpdater {
         defer { scratch.deallocate(); entries.deallocate() }
         func descend(_ parent: Int, fd: Int32) {
             defer { close(fd) }
-            if tree.bsdFlags[parent] & UInt32(SF_DATALESS) != 0 { path.withUnsafeBufferPointer { coverage.record(.cloud, path: $0) }; return }
             if !config.indexPackageContents {
                 let isPackage = path.withUnsafeBufferPointer { bytes in
                     let start = (bytes.lastIndex(of: 47) ?? -1) + 1
@@ -355,7 +357,11 @@ public final class IndexUpdater {
             let first = tree.count
             while true {
                 let n = sift_read_dir(fd, scratch, scratchSize, entries, Int32(scratchSize/32))
-                if n <= 0 { if n < 0 && (errno == EPERM || errno == EACCES) { path.withUnsafeBufferPointer { coverage.record(.noAccess, path: $0) } }; break }
+                if n <= 0 {
+                    if n < 0 && (errno == EPERM || errno == EACCES) { path.withUnsafeBufferPointer { coverage.record(.noAccess, path: $0) } }
+                    else if n < 0 && tree.bsdFlags[parent] & UInt32(SF_DATALESS) != 0 { path.withUnsafeBufferPointer { coverage.record(.cloud, path: $0) } }
+                    break
+                }
                 for j in 0..<Int(n) {
                     let e = entries[j]
                     if e.name_len == 0 { continue }
