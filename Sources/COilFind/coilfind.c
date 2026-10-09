@@ -10,6 +10,8 @@
 #include <mach/mach.h>
 #if defined(__aarch64__)
 #include <arm_neon.h>
+#elif defined(__x86_64__)
+#include <immintrin.h>
 #endif
 
 static inline uint8_t fold(uint8_t x) { return (uint8_t)(x | (((uint8_t)(x - 'A') < 26) ? 0x20 : 0)); }
@@ -24,6 +26,67 @@ static inline uint8x16_t folded(uint8x16_t x, int cs) {
 static inline uint64_t mask16(uint8x16_t x) {
     uint8x8_t y = vshrn_n_u16(vreinterpretq_u16_u8(x), 4);
     return vget_lane_u64(vreinterpret_u64_u8(y), 0);
+}
+#elif defined(__x86_64__)
+/* Checks the middle bytes of every candidate in mask (one bit per byte offset from i);
+   the first and last needle bytes already matched. */
+static inline long verify_mask(const uint8_t *hay, size_t i, uint32_t mask, const uint8_t *needle, size_t nlen, int cs) {
+    while (mask) {
+        size_t p = i + (unsigned)__builtin_ctz(mask);
+        size_t j = 1;
+        for (; j + 1 < nlen && eq(hay[p+j], needle[j], cs); j++);
+        if (j + 1 >= nlen) return (long)p;
+        mask &= mask - 1;
+    }
+    return -1;
+}
+/* SSE2 is part of the x86_64 baseline. There is no unsigned byte compare, so
+   (x - 'A') < 26 is computed as min(x - 'A', 25) == x - 'A'. */
+static inline __m128i folded16(__m128i x, int cs) {
+    if (cs) return x;
+    __m128i t = _mm_sub_epi8(x, _mm_set1_epi8('A'));
+    __m128i upper = _mm_cmpeq_epi8(_mm_min_epu8(t, _mm_set1_epi8(25)), t);
+    return _mm_or_si128(x, _mm_and_si128(upper, _mm_set1_epi8(0x20)));
+}
+static long find_sse2(const uint8_t *hay, size_t *at, size_t last, const uint8_t *needle, size_t nlen, int cs) {
+    __m128i first = _mm_set1_epi8((char)needle[0]), tail = _mm_set1_epi8((char)needle[nlen-1]);
+    size_t i = *at;
+    while (i <= last && last - i >= 15) {
+        __m128i x = folded16(_mm_loadu_si128((const __m128i *)(hay + i)), cs);
+        __m128i y = nlen == 1 ? x : folded16(_mm_loadu_si128((const __m128i *)(hay + i + nlen - 1)), cs);
+        uint32_t mask = (uint32_t)_mm_movemask_epi8(_mm_and_si128(_mm_cmpeq_epi8(x, first), _mm_cmpeq_epi8(y, tail)));
+        long found = verify_mask(hay, i, mask, needle, nlen, cs);
+        if (found >= 0) return found;
+        i += 16;
+    }
+    *at = i; return -1;
+}
+__attribute__((target("avx2")))
+static inline __m256i folded32(__m256i x, int cs) {
+    if (cs) return x;
+    __m256i t = _mm256_sub_epi8(x, _mm256_set1_epi8('A'));
+    __m256i upper = _mm256_cmpeq_epi8(_mm256_min_epu8(t, _mm256_set1_epi8(25)), t);
+    return _mm256_or_si256(x, _mm256_and_si256(upper, _mm256_set1_epi8(0x20)));
+}
+__attribute__((target("avx2")))
+static long find_avx2(const uint8_t *hay, size_t *at, size_t last, const uint8_t *needle, size_t nlen, int cs) {
+    __m256i first = _mm256_set1_epi8((char)needle[0]), tail = _mm256_set1_epi8((char)needle[nlen-1]);
+    size_t i = *at;
+    while (i <= last && last - i >= 31) {
+        __m256i x = folded32(_mm256_loadu_si256((const __m256i *)(hay + i)), cs);
+        __m256i y = nlen == 1 ? x : folded32(_mm256_loadu_si256((const __m256i *)(hay + i + nlen - 1)), cs);
+        uint32_t mask = (uint32_t)_mm256_movemask_epi8(_mm256_and_si256(_mm256_cmpeq_epi8(x, first), _mm256_cmpeq_epi8(y, tail)));
+        long found = verify_mask(hay, i, mask, needle, nlen, cs);
+        if (found >= 0) return found;
+        i += 32;
+    }
+    *at = i; return -1;
+}
+/* Every Mac that runs macOS 14 has AVX2; the check keeps older CPUs on SSE2. */
+static int has_avx2(void) {
+    static int cached = -1;
+    if (cached < 0) cached = __builtin_cpu_supports("avx2") ? 1 : 0;
+    return cached;
 }
 #endif
 long sift_find(const uint8_t *hay, size_t len, size_t from, const uint8_t *needle, size_t nlen, int cs) {
@@ -46,6 +109,13 @@ long sift_find(const uint8_t *hay, size_t len, size_t from, const uint8_t *needl
             mask &= ~((uint64_t)15 << (bit & ~3u));
         }
         i += 16;
+    }
+#elif defined(__x86_64__)
+    /* Short prefix/suffix/equality checks run once per name; keep them off the vector calls. */
+    if (last - i >= 15) {
+        long found = has_avx2() ? find_avx2(hay, &i, last, needle, nlen, cs) : -1;
+        if (found < 0) found = find_sse2(hay, &i, last, needle, nlen, cs);
+        if (found >= 0) return found;
     }
 #endif
     for (; i <= last; i++) {
@@ -94,8 +164,10 @@ size_t sift_scan_candidates(const uint32_t *ids,size_t count,const uint8_t *blob
     }
     return hits;
 }
-int sift_has_prefix(const uint8_t *s,size_t len,const uint8_t *p,size_t plen,int cs) { return plen<=len && sift_find(s,plen,0,p,plen,cs)==0; }
-int sift_has_suffix(const uint8_t *s,size_t len,const uint8_t *p,size_t plen,int cs) { return plen<=len && sift_find(s+len-plen,plen,0,p,plen,cs)==0; }
+/* Fixed-position checks compare in place instead of going through sift_find. */
+static inline int match_at(const uint8_t *s,const uint8_t *p,size_t n,int cs) { for(size_t j=0;j<n;j++) if(!eq(s[j],p[j],cs)) return 0; return 1; }
+int sift_has_prefix(const uint8_t *s,size_t len,const uint8_t *p,size_t plen,int cs) { return plen<=len && match_at(s,p,plen,cs); }
+int sift_has_suffix(const uint8_t *s,size_t len,const uint8_t *p,size_t plen,int cs) { return plen<=len && match_at(s+len-plen,p,plen,cs); }
 int sift_equals(const uint8_t *s,size_t len,const uint8_t *p,size_t plen,int cs) { return len==plen && sift_has_prefix(s,len,p,plen,cs); }
 int sift_has_ancestor(uint32_t id, const uint32_t *parents, const uint8_t *names,
                       const uint32_t *offsets, const uint8_t *needle, size_t length) {
