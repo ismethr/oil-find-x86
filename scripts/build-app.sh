@@ -19,16 +19,19 @@ if [[ "$CONFIGURATION" == release ]]; then
     strip -S "$APP_PATH/Contents/MacOS/OilFind"
 fi
 cp "Resources/Info.plist" "$APP_PATH/Contents/Info.plist"
+# MIT requires the copyright and permission notice in every copy, binaries included.
+cp LICENSE "$APP_PATH/Contents/Resources/LICENSE"
 if [[ -f "Resources/AppIcon.icns" ]]; then
     cp "Resources/AppIcon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
 fi
+BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' Resources/Info.plist)"
 SELF_SIGNED="Oil Find Self-Signed"
 if [[ -n "${OILFIND_SIGN_IDENTITY:-}" ]]; then
-    codesign --force --sign "$OILFIND_SIGN_IDENTITY" --identifier com.oiloil.find --options runtime --timestamp "$APP_PATH"
+    codesign --force --sign "$OILFIND_SIGN_IDENTITY" --identifier "$BUNDLE_ID" --options runtime --timestamp "$APP_PATH"
 elif security find-identity -v -p codesigning | grep -q "\"$SELF_SIGNED\""; then
     # Stable identity: macOS keeps Full Disk Access across updates. See scripts/create-signing-cert.sh.
-    codesign --force --sign "$SELF_SIGNED" --identifier com.oiloil.find "$APP_PATH"
+    codesign --force --sign "$SELF_SIGNED" --identifier "$BUNDLE_ID" "$APP_PATH"
 else
-    codesign --force --sign - --identifier com.oiloil.find "$APP_PATH"
+    codesign --force --sign - --identifier "$BUNDLE_ID" "$APP_PATH"
 fi
 printf '%s\n' "$APP_PATH"

@@ -13,6 +13,7 @@ if UpdateExercise.handles(arguments) {
     catch { fputs("Oil Find update exercise: \(error)\n", stderr); exit(1) }
 }
 #endif
+ForkDefaultsMigration.run()
 SystemUpdateFiles().registerLaunch(application: Bundle.main.bundleURL, current: UpdateManager.current)
 let app = NSApplication.shared
 SettingsPreferences.register()

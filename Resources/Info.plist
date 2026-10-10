@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleIdentifier</key><string>com.oiloil.find</string>
+    <key>CFBundleIdentifier</key><string>io.github.ismethr.oilfind-x86</string>
     <key>CFBundleName</key><string>Oil Find</string>
     <key>CFBundleDisplayName</key><string>Oil Find</string>
     <key>CFBundleExecutable</key><string>OilFind</string>

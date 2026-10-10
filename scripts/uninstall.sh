@@ -8,13 +8,13 @@ fi
 printf '%s\n' 'The following will be deleted:' \
     '/Applications/Oil Find.app' \
     "$HOME/Library/Application Support/Oil Find" \
-    'Settings: com.oiloil.find' \
+    'Settings: io.github.ismethr.oilfind-x86, com.oiloil.find' \
     'Legacy authorization item: com.oiloil.find.trial'
 read -r -p 'Continue? [y/N] ' confirmation
 [[ "$confirmation" == y ]] || exit 0
 
 if pgrep -x OilFind >/dev/null; then
-    osascript -e 'quit app id "com.oiloil.find"' &
+    osascript -e 'quit app id "io.github.ismethr.oilfind-x86"' &
     QUIT_REQUEST_PID=$!
     for ((attempt = 0; attempt < 50; attempt++)); do
         if ! pgrep -x OilFind >/dev/null; then break; fi
@@ -29,5 +29,6 @@ if pgrep -x OilFind >/dev/null; then
 fi
 
 rm -rf "/Applications/Oil Find.app" "$HOME/Library/Application Support/Oil Find"
+defaults delete io.github.ismethr.oilfind-x86 >/dev/null 2>&1 || true
 defaults delete com.oiloil.find >/dev/null 2>&1 || true
 security delete-generic-password -s com.oiloil.find.trial >/dev/null 2>&1 || true
