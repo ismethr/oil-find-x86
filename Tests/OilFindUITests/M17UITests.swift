@@ -37,6 +37,6 @@ final class M17UITests: XCTestCase {
         XCTAssertEqual(L10n.diagnostic(QueryDiagnostic(kind: .size)), "size: 的写法是 size:>10mb 或 size:1mb..5mb")
         L10n.snapshotChinese = false
         XCTAssertEqual(L10n.diagnostic(QueryDiagnostic(kind: .date)), "Write dm: as dm:today, dm:week or dm:2026-10-01")
-        XCTAssertEqual(L10n.explanation(.cloud), "It's in a folder that's only in the cloud. Download it to this Mac to search it.")
+        XCTAssertEqual(L10n.explanation(.cloud), "Its cloud folder couldn't be listed yet. It will be filled in once you're online.")
     }
 }
