@@ -4,6 +4,7 @@ import OilFindCore
 public enum Application {
     public static func run(appExtension: ApplicationExtension? = nil, arguments: [String] = Array(CommandLine.arguments.dropFirst())) {
     CloudPolicy.forbidDownloads()
+    ForkDefaultsMigration.run()
     if let status = appExtension?.handleLaunch(arguments: arguments) { exit(status) }
     let externalDrives = ExternalDriveCatalog()
 #if DEBUG

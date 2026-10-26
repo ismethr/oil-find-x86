@@ -41,6 +41,6 @@ final class M17UITests: XCTestCase {
         XCTAssertEqual(L10n.text("coverage.volumes", "2"), "External and network volumes: 2 (not indexed)")
         XCTAssertEqual(L10n.explanation(.volume), "It's on an external or network volume, which isn't indexed.")
         XCTAssertEqual(L10n.diagnostic(QueryDiagnostic(kind: .date)), "Write dm: as dm:today, dm:week or dm:2026-10-01")
-        XCTAssertEqual(L10n.explanation(.cloud), "It's in a folder that's only in the cloud. Download it to this Mac to search it.")
+        XCTAssertEqual(L10n.explanation(.cloud), "Its cloud folder couldn't be listed yet. It will be filled in once you're online.")
     }
 }

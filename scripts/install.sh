@@ -3,7 +3,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 "$PROJECT_DIR/scripts/build-app.sh"
 
-for application in 'Sift:com.oiloil.sift' 'OilFind:com.oiloil.find'; do
+for application in 'Sift:com.oiloil.sift' 'OilFind:io.github.ismethr.oilfind-x86'; do
     process_name="${application%%:*}"
     bundle_id="${application#*:}"
     if pgrep -x "$process_name" >/dev/null; then

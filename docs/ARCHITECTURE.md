@@ -58,7 +58,7 @@ oil-find/
   docs/
 ```
 
-`Package.swift`：`swift-tools-version:5.10`，`platforms: [.macOS(.v14)]`。公开 target 为 `COilFind`、`OilFindCore`、`OilFindApp`（library）、`OilFind`（executable）与 `oilfind-cli`，另有核心与应用界面两个测试 target；应用界面测试依赖 `OilFindApp`。应用 bundle id 为 `com.oiloil.find`。
+`Package.swift`：`swift-tools-version:5.10`，`platforms: [.macOS(.v14)]`。公开 target 为 `COilFind`、`OilFindCore`、`OilFindApp`（library）、`OilFind`（executable）与 `oilfind-cli`，另有核心与应用界面两个测试 target；应用界面测试依赖 `OilFindApp`。应用 bundle id 为 `io.github.ismethr.oilfind-x86`（x86 分支；上游为 `com.oiloil.find`，首次启动时迁移其设置，见 `ForkDefaultsMigration.swift`）。
 
 ## 开放核心与应用扩展
 

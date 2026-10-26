@@ -10,7 +10,7 @@ esac
 printf '%s\n' 'The following will be deleted:' \
     '/Applications/Oil Find.app' \
     "$HOME/Library/Application Support/Oil Find" \
-    'Settings: com.oiloil.find' \
+    'Settings: io.github.ismethr.oilfind-x86, com.oiloil.find' \
     'Legacy authorization item: com.oiloil.find.trial'
 if [[ "$PURGE" == true ]]; then
     printf '%s\n' 'Pro trial anchors will also be deleted.'
@@ -21,7 +21,7 @@ read -r -p 'Continue? [y/N] ' confirmation
 [[ "$confirmation" == y ]] || exit 0
 
 if pgrep -x OilFind >/dev/null; then
-    osascript -e 'quit app id "com.oiloil.find"' &
+    osascript -e 'quit app id "io.github.ismethr.oilfind-x86"' &
     QUIT_REQUEST_PID=$!
     for ((attempt = 0; attempt < 50; attempt++)); do
         if ! pgrep -x OilFind >/dev/null; then break; fi
@@ -40,6 +40,7 @@ rm -rf "/Applications/Oil Find.app" "$HOME/Library/Application Support/Oil Find"
 PRO_EVALUATION_START="$(defaults read com.oiloil.find proEvaluationStartedAt 2>/dev/null || true)"
 PRO_EVALUATION_SEEN="$(defaults read com.oiloil.find proEvaluationLastSeenAt 2>/dev/null || true)"
 PRO_EVALUATION_ENDED="$(defaults read com.oiloil.find proEvaluationEndedAt 2>/dev/null || true)"
+defaults delete io.github.ismethr.oilfind-x86 >/dev/null 2>&1 || true
 defaults delete com.oiloil.find >/dev/null 2>&1 || true
 if [[ "$PURGE" == false ]]; then
     if [[ -n "$PRO_EVALUATION_START" && -n "$PRO_EVALUATION_SEEN" ]]; then
