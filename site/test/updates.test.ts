@@ -7,8 +7,18 @@ import { describe, expect, it } from 'vitest';
 import { changelogTitle, releases } from '../content/releases';
 
 describe('updates and release notes', () => {
+  it('includes the exact bilingual 1.6.0 external-drive announcement', () => {
+    expect(releases.find(release => release.version === '1.6.0')?.notes).toEqual({"zh": ["外置磁盘搜索现在免费：插上就建立索引并实时更新，在设置的「外置磁盘」里可以逐个关闭。", "Pro 保留「拔掉后也能搜到」，并继续提供图片和文档内容搜索。", "Pro 激活后，应用图标会换成戴飞行员墨镜的版本。"], "en": ["Searching external drives is now free: drives are indexed when you plug them in and kept up to date, and you can turn off any drive in Settings.", "Pro keeps drives searchable after you unplug them, along with image and document content search.", "When Pro is active, the app icon switches to a version wearing aviators."]});
+  });
+  it('includes the exact bilingual 1.5.0 document-search announcement', () => {
+    expect(releases.find(release => release.version === '1.5.0')?.notes).toEqual({
+      zh: ['Oil Find Pro 新增文档内容搜索：PDF、Word、PowerPoint、Excel、Pages、Markdown 和纯文本里的文字都能搜到，扫描版 PDF 会识别前 10 页。全部在本机处理。'],
+      en: ['Oil Find Pro now searches inside documents: PDF, Word, PowerPoint, Excel, Pages, Markdown and plain text, plus the first 10 pages of scanned PDFs. Everything is processed on your Mac.'],
+    });
+  });
+
   it('publishes the exact bilingual 1.3.0 open source announcement', () => {
-    expect(releases[0]).toEqual({
+    expect(releases.find(release => release.version === '1.3.0')).toEqual({
       version: '1.3.0',
       date: '2026-10-06',
       notes: {
@@ -19,13 +29,14 @@ describe('updates and release notes', () => {
     expect(changelogTitle).toEqual({ zh: '更新日志', en: 'Changelog' });
   });
 
-  it('keeps the public update manifest aligned with the current release', () => {
+  it('keeps the public update manifest aligned with its published release, including before packaging the next release', () => {
     const manifest = JSON.parse(readFileSync(new URL('../public/updates/latest.json', import.meta.url), 'utf8'));
+    const published = releases.find(release => release.version === manifest.version)!;
     expect(manifest).toMatchObject({
-      version: releases[0].version,
-      published: releases[0].date,
-      url: `https://find.oiloil.org/downloads/Oil-Find-${releases[0].version}.zip`,
-      notes: releases[0].notes,
+      version: published.version,
+      published: published.date,
+      url: `https://find.oiloil.org/downloads/Oil-Find-${published.version}.zip`,
+      notes: published.notes,
     });
     expect(manifest.size).toBeGreaterThan(0);
     expect(manifest.sha256).toMatch(/^[a-f0-9]{64}$/);

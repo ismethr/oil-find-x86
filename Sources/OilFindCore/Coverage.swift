@@ -2,7 +2,7 @@ import Foundation
 import Darwin
 
 public enum CoverageReason: String, Codable, CaseIterable {
-    case noAccess, dependency, packages, library, system, userExcluded, cloud, volumes
+    case noAccess, dependency, packages, library, system, userExcluded, fileType, cloud, volumes
     public var scopeKey: String? {
         switch self {
         case .dependency: return "dependency"
@@ -51,39 +51,52 @@ public struct CoverageStats: Codable, Equatable {
             buckets[reason] = bucket
         }
     }
-    public mutating func refreshVolumes() {
+    public mutating func refreshVolumes(excluding indexedRoots: Set<String> = []) {
         var mounts: UnsafeMutablePointer<statfs>?
         let count = getmntinfo(&mounts, MNT_NOWAIT)
-        var bucket = CoverageBucket()
+        var paths: [String] = []
         if let mounts {
             for i in 0..<Int(count) {
                 var mount = mounts[i]
                 withUnsafeBytes(of: &mount.f_mntonname) { raw in
                     let bytes = raw.bindMemory(to: UInt8.self).prefix(while: { $0 != 0 })
                     if bytes.starts(with: "/Volumes/".utf8) {
-                        bucket.count += 1
-                        if bucket.examples.count < 5 { bucket.examples.append(String(decoding: bytes, as: UTF8.self)) }
+                        paths.append(String(decoding: bytes, as: UTF8.self))
                     }
                 }
             }
+        }
+        refreshVolumes(mountPaths: paths, excluding: indexedRoots)
+    }
+    mutating func refreshVolumes(mountPaths: [String], excluding indexedRoots: Set<String>) {
+        var bucket = CoverageBucket()
+        for path in mountPaths where path.hasPrefix("/Volumes/") && !indexedRoots.contains(path) {
+            bucket.count += 1
+            if bucket.examples.count < 5 { bucket.examples.append(path) }
         }
         buckets[.volumes] = bucket
     }
 }
 public enum CoverageExplanation: Equatable {
-    case indexed, scope(CoverageReason), userExcluded(String), noAccess, volume, cloud, pending
+    case indexed, scope(CoverageReason), userExcluded(String), fileType(String), noAccess, volume, cloud, pending
 }
 public enum Coverage {
     // Cold, single-path inspection. All filesystem work stays outside the index lock.
     public static func explain(path: String, config: IndexConfig, store: IndexStore?) -> CoverageExplanation {
         let path = path.precomposedStringWithCanonicalMapping
         if store?.read({ store!.containsPath(path) }) == true { return .indexed }
-        if path == "/Volumes" || path.hasPrefix("/Volumes/") { return .volume }
+        let root = config.rootPath.precomposedStringWithCanonicalMapping
+        let withinVolumeRoot = root.hasPrefix("/Volumes/") && (path == root || path.hasPrefix(root + "/"))
+        if (path == "/Volumes" || path.hasPrefix("/Volumes/")) && !withinVolumeRoot { return .volume }
         for excluded in config.userExcludedPaths where path == excluded || path.hasPrefix(excluded == "/" ? "/" : excluded + "/") { return .userExcluded(excluded) }
         var info = stat()
         let exists = path.withCString { lstat($0, &info) == 0 }
         let reason = Array(path.utf8).withUnsafeBufferPointer { config.exclusionReason(path: $0, isDirectory: !exists || info.st_mode & S_IFMT == S_IFDIR) }
         if let reason {
+            if reason == .fileType {
+                let name = (path as NSString).lastPathComponent
+                return .fileType(String(name.suffix(from: name.index(after: name.lastIndex(of: ".")!))).lowercased())
+            }
             if reason == .noAccess { return .noAccess }
             if reason.scopeKey != nil { return .scope(reason) }
         }
